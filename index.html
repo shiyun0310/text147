@@ -63,9 +63,24 @@
                 <p class="flex items-center"><span class="text-2xl mr-2">📍</span> **地點：** 奇美醫院第五醫療大樓6樓563會議室</p>
             </div>
         </section>
+        
+        <!-- 額滿訊息區塊 (預設隱藏) -->
+        <div id="full-message-container" class="hidden text-center p-8 md:p-12 bg-red-50 border-4 border-red-400 rounded-2xl shadow-xl">
+            <p class="text-6xl mb-4">🛑</p>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-red-800 mb-2">
+                報名已額滿 (4 人上限)
+            </h2>
+            <p class="text-xl text-red-600 font-medium">
+                感謝您對本次工作坊的熱烈支持，名額已全數額滿。
+            </p>
+            <p class="text-base text-red-500 mt-2">
+                請關注下次活動資訊，造成不便敬請見諒。
+            </p>
+        </div>
 
-        <!-- 報名表單區塊 -->
-        <section>
+
+        <!-- 報名表單區塊 (預設顯示，若額滿會被隱藏) -->
+        <section id="registration-section">
             <h2 class="text-3xl font-bold text-indigo-700 mb-6 flex items-center">
                 報名登記 📝
             </h2>
@@ -180,15 +195,60 @@
     </div>
 
     <script>
+        // Apps Script 網址
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby13d_J5vGagI8fcOgkc7T9KqkhLg41StzPtS-bZmY6NMpk9-kx-knMK33TqC8jK5Zjpg/exec'; 
+        const MAX_REGISTRATIONS = 4;
+        
+        const registrationSection = document.getElementById('registration-section');
+        const fullMessageContainer = document.getElementById('full-message-container');
+        const messageBox = document.getElementById('message-box');
+
+        /**
+         * 檢查目前的報名人數是否已滿，並更新網頁顯示。
+         */
+        async function checkRegistrationStatus() {
+            try {
+                // 使用 GET 請求來獲取數據 (doGet 函數)
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                // 如果 doGet 傳回 status: 'full'，表示已額滿
+                if (result.status === 'full' || (result.total && result.total >= MAX_REGISTRATIONS)) {
+                    registrationSection.classList.add('hidden');
+                    fullMessageContainer.classList.remove('hidden');
+                } else {
+                    registrationSection.classList.remove('hidden');
+                    fullMessageContainer.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error('檢查報名狀態時發生錯誤:', error);
+                // 即使檢查失敗，也預設顯示表單，讓使用者嘗試提交
+                registrationSection.classList.remove('hidden');
+                fullMessageContainer.classList.add('hidden');
+            }
+        }
+        
+        // 頁面載入時檢查狀態
+        window.onload = checkRegistrationStatus;
+        
+        // 設定每 10 秒自動更新狀態，確保即時性
+        setInterval(checkRegistrationStatus, 10000); 
+
+        // 表單提交處理
         document.getElementById('registration-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const form = e.target;
-            const messageBox = document.getElementById('message-box');
             
-            // 已更新為新的 Apps Script 網址
-            const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwqIp0M_q_3b93tD4pU7OiRveiFlJGydIORqXT_BhMNrkaPQz515P79xppSepMjfeTdFg/exec'; 
-
             // 顯示載入狀態
             messageBox.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
             messageBox.classList.add('bg-purple-100', 'text-purple-700');
@@ -197,13 +257,10 @@
             try {
                 // 獲取表單數據
                 const formData = new FormData(form);
-                
-                // 將 FormData 轉換為 URLSearchParams 格式，這是 Apps Script doPost 接收 POST 數據的標準格式
                 const params = new URLSearchParams(formData);
 
-                const response = await fetch(appsScriptUrl, {
+                const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
-                    // 設定 Content-Type 以符合 Apps Script 預期
                     body: params.toString(), 
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -220,8 +277,20 @@
                     messageBox.classList.add('bg-green-100', 'text-green-700');
                     messageBox.innerHTML = '🎉 **報名成功！** 您的資料已匯入 Google Sheets！';
                     form.reset(); // 清空表單
+                    
+                    // 提交成功後，重新檢查狀態，可能會立即顯示額滿訊息
+                    checkRegistrationStatus(); 
+                } else if (result.message === 'FULL') {
+                    // 報名額滿訊息 (從 Apps Script 傳回的特定錯誤碼)
+                    messageBox.classList.remove('bg-purple-100', 'text-purple-700', 'hidden');
+                    messageBox.classList.add('bg-red-100', 'text-red-700');
+                    messageBox.innerHTML = `❌ ${result.displayMessage || '抱歉，報名已額滿！'}`;
+                    
+                    // 立即更新頁面顯示為額滿
+                    registrationSection.classList.add('hidden');
+                    fullMessageContainer.classList.remove('hidden');
                 } else {
-                    // 錯誤訊息
+                    // 其他錯誤訊息
                     messageBox.classList.remove('bg-purple-100', 'text-purple-700');
                     messageBox.classList.add('bg-red-100', 'text-red-700');
                     messageBox.innerHTML = `❌ **報名失敗！** 錯誤訊息：${result.message || '請檢查 Apps Script 部署與設定。'}`;
@@ -236,10 +305,12 @@
                 console.error('Submission Error:', error);
             }
             
-            // 5 秒後自動隱藏訊息
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 5000);
+            // 5 秒後自動隱藏訊息 (除非已經顯示額滿的紅色大區塊)
+            if (fullMessageContainer.classList.contains('hidden')) {
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 5000);
+            }
         });
     </script>
 </body>
