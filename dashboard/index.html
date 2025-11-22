@@ -56,6 +56,11 @@
         <div id="error-message" class="hidden text-center p-4 bg-red-100 text-red-700 rounded-xl font-semibold">
             ❌ 無法載入報名數據。請確認 Apps Script 已部署，並且已更新 `Code.gs` 並重新部署為 Web App！
         </div>
+        
+        <!-- 額滿提示 (在儀表板頂部顯示) -->
+        <div id="dashboard-full-alert" class="hidden text-center p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg mb-6 font-semibold">
+             🛑 報名已額滿！目前總人數已達 <span id="alert-total" class="font-extrabold">4</span> 人上限。
+        </div>
 
         <!-- 儀表板內容區塊 (成功載入後顯示) -->
         <div id="dashboard-content" class="hidden space-y-10">
@@ -138,18 +143,22 @@
 
     <script>
         // Apps Script Web App URL (用於 GET 請求)
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqIp0M_q_3b93tD4pU7OiRveiFlJGydIORqXT_BhMNrkaPQz515P79xppSepMjfeTdFg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby13d_J5vGagI8fcOgkc7T9KqkhLg41StzPtS-bZmY6NMpk9-kx-knMK33TqC8jK5Zjpg/exec';
 
+        const MAX_REGISTRATIONS = 4; // 報名人數上限
         const loadingContainer = document.getElementById('loading-container');
         const errorContainer = document.getElementById('error-message');
         const dashboardContent = document.getElementById('dashboard-content');
+        const fullAlert = document.getElementById('dashboard-full-alert');
+        const alertTotal = document.getElementById('alert-total');
+
 
         /**
          * 處理從 Apps Script 獲取到的原始資料，計算統計數據。
          * @param {Array} data - 從 Google Sheets 獲取的報名數據陣列。
+         * @param {number} totalCount - 總報名人數。
          */
-        function processDataAndRender(data) {
-            const totalCount = data.length;
+        function processDataAndRender(data, totalCount) {
             
             // 1. 計算統計數據
             const stats = {
@@ -190,6 +199,14 @@
             // 顯示儀表板內容
             loadingContainer.classList.add('hidden');
             dashboardContent.classList.remove('hidden');
+            
+            // 檢查是否額滿，更新頂部提示
+            if (totalCount >= MAX_REGISTRATIONS) {
+                alertTotal.textContent = totalCount;
+                fullAlert.classList.remove('hidden');
+            } else {
+                fullAlert.classList.add('hidden');
+            }
         }
         
         /**
@@ -295,6 +312,7 @@
             loadingContainer.classList.remove('hidden');
             errorContainer.classList.add('hidden');
             dashboardContent.classList.add('hidden');
+            fullAlert.classList.add('hidden');
 
             try {
                 // 使用 Apps Script 的 GET 請求來獲取數據
@@ -308,9 +326,12 @@
                 }
 
                 const result = await response.json();
+                const totalCount = result.total || 0;
 
-                if (result.status === 'success') {
-                    processDataAndRender(result.data);
+
+                if (result.status === 'success' || result.status === 'full') {
+                    // 即使 status 是 'full'，我們仍然有 totalCount 和 data (data 可能為空) 來顯示儀表板
+                    processDataAndRender(result.data || [], totalCount);
                 } else {
                     errorContainer.innerHTML = `❌ 載入失敗：${result.message || 'Apps Script 執行錯誤。'}`;
                     errorContainer.classList.remove('hidden');
