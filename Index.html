@@ -1,0 +1,133 @@
+const SPREADSHEET_ID = '11WJLLkl9vLtRm-ysJ5yvDXrBFEGjzyz9SDC7b4f1i30';
+const SHEET_NAME = '工作坊報名資料';
+
+/**
+ * 處理來自外部 HTML 表單的 POST 請求，將資料寫入 Google Sheets。
+ *
+ * @param {Object} e 包含表單提交資料的事件物件。
+ * @returns {ContentService.TextOutput} 回傳 JSON 格式的成功或失敗訊息。
+ */
+function doPost(e) {
+  // 設定回傳的 JSON 類型
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+
+  // 確保參數存在
+  if (!e.parameter) {
+    return output.setContent(JSON.stringify({ status: 'error', message: '缺少表單參數 (Missing parameters).' }));
+  }
+
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+
+    // 檢查工作表名稱是否存在
+    if (!sheet) {
+      return output.setContent(JSON.stringify({ status: 'error', message: `找不到工作表名稱: ${SHEET_NAME}。請確認分頁名稱是否正確。` }));
+    }
+
+    // 獲取表單提交的數據
+    const data = e.parameter;
+    const timestamp = new Date();
+
+    // 檢查工作表是否為空，若為空則寫入標題欄
+    if (sheet.getLastRow() === 0) {
+      const headers = ['提交時間', '姓名', '機構名', '職稱', '負責的職類', '是否擔任計畫主持人', '參與方式', 'Email', '聯繫電話'];
+      sheet.appendRow(headers);
+    }
+
+    // 依序排列要寫入的欄位，順序需與 HTML 表單的 name 屬性及標題欄位對應
+    const row = [
+      timestamp,
+      data.name,
+      data.institution,
+      data.title,
+      data.profession,
+      data.is_director,
+      data.participation_mode,
+      data.email,
+      data.phone
+    ];
+
+    // 將資料新增至工作表末行
+    sheet.appendRow(row);
+
+    // 成功回應
+    const response = {
+      status: 'success',
+      message: '報名資料寫入成功！',
+      data: data
+    };
+
+    return output.setContent(JSON.stringify(response));
+
+  } catch (error) {
+    // 處理任何錯誤
+    const response = {
+      status: 'error',
+      message: error.toString()
+    };
+
+    return output.setContent(JSON.stringify(response));
+  }
+}
+
+/**
+ * 處理 GET 請求，回傳所有報名資料的 JSON 格式。
+ * (此函數是為報名現況儀表板新增的功能)
+ *
+ * @returns {ContentService.TextOutput} 回傳包含所有工作表數據的 JSON 格式。
+ */
+function doGet(e) {
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
+  
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      return output.setContent(JSON.stringify({ status: 'error', message: `找不到工作表名稱: ${SHEET_NAME}` }));
+    }
+
+    // 獲取所有數據
+    const lastRow = sheet.getLastRow();
+    const lastColumn = sheet.getLastColumn();
+
+    if (lastRow <= 1) { // 只有標題行或為空
+      return output.setContent(JSON.stringify({ status: 'success', total: 0, data: [] }));
+    }
+
+    // 獲取標題行 (第一行)
+    const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+    
+    // 獲取數據行 (第二行到最後一行)
+    const dataRows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+
+    // 將數據行轉換為物件陣列
+    const data = dataRows.map(row => {
+      const obj = {};
+      headers.forEach((header, index) => {
+        // 使用標題作為鍵 (Key)
+        obj[header] = row[index];
+      });
+      return obj;
+    });
+    
+    const response = {
+      status: 'success',
+      total: data.length,
+      data: data
+    };
+
+    return output.setContent(JSON.stringify(response));
+    
+  } catch (error) {
+    const response = {
+      status: 'error',
+      message: error.toString()
+    };
+
+    return output.setContent(JSON.stringify(response));
+  }
+}
