@@ -7,13 +7,16 @@
     <!-- 載入 Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 設定自訂字體和主背景漸層 */
+        /* 設定自訂字體和主背景圖片 */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            /* 酷炫紫色漸層背景 */
-            background-color: #4c1d95; /* Fallback color */
-            background-image: linear-gradient(to right top, #4c1d95, #7c3aed, #a855f7, #c084fc, #e9d5ff);
+            /* 使用背景圖片 (已更新為 sky01.jpg 的 Raw URL) */
+            background-color: #f0f8ff; /* 淺藍色 Fallback Color */
+            background-image: url('https://raw.githubusercontent.com/shiyun0310/text147/main/sky01.jpg');
+            background-size: cover; /* 覆蓋整個區域 */
+            background-position: center; /* 圖片居中 */
+            background-attachment: fixed; /* 固定背景，滾動時不移動 */
             min-height: 100vh;
         }
 
@@ -39,7 +42,8 @@
 </head>
 <body class="flex items-center justify-center p-4">
 
-    <div class="w-full max-w-4xl bg-white bg-opacity-95 card-glow rounded-3xl p-6 md:p-10 my-8">
+    <!-- 將 bg-opacity-95 改為 bg-opacity-85 讓背景圖更顯眼 -->
+    <div class="w-full max-w-4xl bg-white bg-opacity-85 card-glow rounded-3xl p-6 md:p-10 my-8">
 
         <!-- 標題區塊 -->
         <header class="text-center mb-10">
