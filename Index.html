@@ -1,133 +1,246 @@
-const SPREADSHEET_ID = '11WJLLkl9vLtRm-ysJ5yvDXrBFEGjzyz9SDC7b4f1i30';
-const SHEET_NAME = '工作坊報名資料';
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教學訓練計畫主持人工作坊 🚀</title>
+    <!-- 載入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 設定自訂字體和主背景漸層 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            /* 酷炫紫色漸層背景 */
+            background-color: #4c1d95; /* Fallback color */
+            background-image: linear-gradient(to right top, #4c1d95, #7c3aed, #a855f7, #c084fc, #e9d5ff);
+            min-height: 100vh;
+        }
 
-/**
- * 處理來自外部 HTML 表單的 POST 請求，將資料寫入 Google Sheets。
- *
- * @param {Object} e 包含表單提交資料的事件物件。
- * @returns {ContentService.TextOutput} 回傳 JSON 格式的成功或失敗訊息。
- */
-function doPost(e) {
-  // 設定回傳的 JSON 類型
-  const output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
+        /* 活潑的陰影和動畫效果 */
+        .card-glow {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 25px -3px rgba(168, 85, 247, 0.5), 0 4px 6px -2px rgba(168, 85, 247, 0.2);
+        }
+        .card-glow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -5px rgba(168, 85, 247, 0.7), 0 8px 10px -4px rgba(168, 85, 247, 0.4);
+        }
+        
+        .btn-submit {
+            transition: all 0.2s ease;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.6);
+        }
+        
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
 
-  // 確保參數存在
-  if (!e.parameter) {
-    return output.setContent(JSON.stringify({ status: 'error', message: '缺少表單參數 (Missing parameters).' }));
-  }
+    <div class="w-full max-w-4xl bg-white bg-opacity-95 card-glow rounded-3xl p-6 md:p-10 my-8">
 
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(SHEET_NAME);
+        <!-- 標題區塊 -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-800 tracking-tight mb-2">
+                教學訓練計畫主持人工作坊 ✨
+            </h1>
+            <p class="text-xl text-purple-600 font-semibold mt-3">
+                激發教學潛能，共創卓越醫療教育！🚀
+            </p>
+            <hr class="mt-4 border-2 border-pink-400 w-24 mx-auto rounded-full">
+        </header>
 
-    // 檢查工作表名稱是否存在
-    if (!sheet) {
-      return output.setContent(JSON.stringify({ status: 'error', message: `找不到工作表名稱: ${SHEET_NAME}。請確認分頁名稱是否正確。` }));
-    }
+        <!-- 活動資訊區塊 -->
+        <section class="mb-10 p-6 bg-purple-50 rounded-2xl border-l-4 border-pink-500 shadow-lg">
+            <h2 class="text-3xl font-bold text-purple-700 mb-4 flex items-center">
+                活動資訊 ℹ️
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-700 font-medium">
+                <p class="flex items-center"><span class="text-2xl mr-2">🗓️</span> **日期：** 2026/01/25</p>
+                <p class="flex items-center"><span class="text-2xl mr-2">🕒</span> **時間：** 9:00 ~ 16:00</p>
+                <p class="flex items-center"><span class="text-2xl mr-2">📍</span> **地點：** 奇美醫院第五醫療大樓6樓563會議室</p>
+            </div>
+        </section>
 
-    // 獲取表單提交的數據
-    const data = e.parameter;
-    const timestamp = new Date();
+        <!-- 報名表單區塊 -->
+        <section>
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6 flex items-center">
+                報名登記 📝
+            </h2>
+            <form id="registration-form" class="space-y-6">
 
-    // 檢查工作表是否為空，若為空則寫入標題欄
-    if (sheet.getLastRow() === 0) {
-      const headers = ['提交時間', '姓名', '機構名', '職稱', '負責的職類', '是否擔任計畫主持人', '參與方式', 'Email', '聯繫電話'];
-      sheet.appendRow(headers);
-    }
+                <!-- 基礎資訊 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">姓名 *</label>
+                        <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="institution" class="block text-sm font-medium text-gray-700">機構名 *</label>
+                        <input type="text" id="institution" name="institution" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150">
+                    </div>
+                </div>
 
-    // 依序排列要寫入的欄位，順序需與 HTML 表單的 name 屬性及標題欄位對應
-    const row = [
-      timestamp,
-      data.name,
-      data.institution,
-      data.title,
-      data.profession,
-      data.is_director,
-      data.participation_mode,
-      data.email,
-      data.phone
-    ];
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">職稱 *</label>
+                        <input type="text" id="title" name="title" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="profession" class="block text-sm font-medium text-gray-700">負責的職類 * (下拉式選單)</label>
+                        <select id="profession" name="profession" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150 bg-white">
+                            <option value="" disabled selected>請選擇職類</option>
+                            <option value="藥事">藥事</option>
+                            <option value="醫事放射">醫事放射</option>
+                            <option value="醫事檢驗">醫事檢驗</option>
+                            <option value="護理">護理</option>
+                            <option value="營養">營養</option>
+                            <option value="呼吸治療">呼吸治療</option>
+                            <option value="聽力">聽力</option>
+                            <option value="物理治療">物理治療</option>
+                            <option value="職能治療">職能治療</option>
+                            <option value="臨床心理">臨床心理</option>
+                            <option value="語言治療">語言治療</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 擔任計畫主持人情況 (單選) -->
+                <div class="bg-purple-100 p-4 rounded-xl">
+                    <label class="block text-sm font-bold text-gray-800 mb-2">您目前是否擔任教學訓練計畫主持人 *</label>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center">
+                            <input id="is_director_yes" name="is_director" type="radio" value="是" required class="focus:ring-pink-500 h-4 w-4 text-pink-600 border-gray-300">
+                            <label for="is_director_yes" class="ml-2 block text-sm font-medium text-gray-700">是</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="is_director_no" name="is_director" type="radio" value="否" class="focus:ring-pink-500 h-4 w-4 text-pink-600 border-gray-300">
+                            <label for="is_director_no" class="ml-2 block text-sm font-medium text-gray-700">否</label>
+                        </div>
+                    </div>
+                </div>
 
-    // 將資料新增至工作表末行
-    sheet.appendRow(row);
+                <!-- 參與方式 (單選) -->
+                <div class="bg-purple-100 p-4 rounded-xl">
+                    <label class="block text-sm font-bold text-gray-800 mb-2">您預計以何種方式參與 *</label>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center">
+                            <input id="mode_in_person" name="participation_mode" type="radio" value="實體" required class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                            <label for="mode_in_person" class="ml-2 block text-sm font-medium text-gray-700">實體 🧑‍🤝‍🧑</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="mode_online" name="participation_mode" type="radio" value="線上" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                            <label for="mode_online" class="ml-2 block text-sm font-medium text-gray-700">線上 💻</label>
+                        </div>
+                    </div>
+                </div>
 
-    // 成功回應
-    const response = {
-      status: 'success',
-      message: '報名資料寫入成功！',
-      data: data
-    };
+                <!-- 聯絡資訊 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email *</label>
+                        <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700">聯繫電話 *</label>
+                        <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 transition duration-150">
+                    </div>
+                </div>
 
-    return output.setContent(JSON.stringify(response));
+                <!-- 提交按鈕 -->
+                <div class="pt-4 text-center">
+                    <button type="submit" class="btn-submit inline-flex justify-center items-center py-3 px-8 border border-transparent shadow-lg text-lg font-bold rounded-full text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 uppercase tracking-wider transform hover:scale-105 transition duration-200">
+                        立即報名！✅
+                    </button>
+                </div>
+                
+                <!-- 報名成功/錯誤訊息區塊 -->
+                <div id="message-box" class="hidden mt-4 p-4 rounded-xl text-center font-semibold transition-all duration-300"></div>
 
-  } catch (error) {
-    // 處理任何錯誤
-    const response = {
-      status: 'error',
-      message: error.toString()
-    };
+            </form>
+        </section>
+        
+        <!-- 主辦單位資訊 -->
+        <footer class="mt-10 pt-6 border-t border-purple-200 text-center text-sm text-gray-500">
+            <h3 class="text-base font-semibold text-purple-600 mb-1">主辦單位資訊 📞</h3>
+            <p>
+                主辦單位：奇美醫院教學部
+                <span class="mx-2 hidden sm:inline">|</span>
+                <br class="sm:hidden">
+                聯絡人：陳大頭 (請於上班時間撥打)
+                <span class="mx-2 hidden sm:inline">|</span>
+                <br class="sm:hidden">
+                聯繫電話：06-281-2811分機57112233
+            </p>
+        </footer>
 
-    return output.setContent(JSON.stringify(response));
-  }
-}
+    </div>
 
-/**
- * 處理 GET 請求，回傳所有報名資料的 JSON 格式。
- * (此函數是為報名現況儀表板新增的功能)
- *
- * @returns {ContentService.TextOutput} 回傳包含所有工作表數據的 JSON 格式。
- */
-function doGet(e) {
-  const output = ContentService.createTextOutput();
-  output.setMimeType(ContentService.MimeType.JSON);
-  
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(SHEET_NAME);
-    
-    if (!sheet) {
-      return output.setContent(JSON.stringify({ status: 'error', message: `找不到工作表名稱: ${SHEET_NAME}` }));
-    }
+    <script>
+        document.getElementById('registration-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-    // 獲取所有數據
-    const lastRow = sheet.getLastRow();
-    const lastColumn = sheet.getLastColumn();
+            const form = e.target;
+            const messageBox = document.getElementById('message-box');
+            
+            // 已更新為新的 Apps Script 網址
+            const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbwqIp0M_q_3b93tD4pU7OiRveiFlJGydIORqXT_BhMNrkaPQz515P79xppSepMjfeTdFg/exec'; 
 
-    if (lastRow <= 1) { // 只有標題行或為空
-      return output.setContent(JSON.stringify({ status: 'success', total: 0, data: [] }));
-    }
+            // 顯示載入狀態
+            messageBox.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
+            messageBox.classList.add('bg-purple-100', 'text-purple-700');
+            messageBox.innerHTML = '🔄 資料送出中... 請稍候 ⏳';
 
-    // 獲取標題行 (第一行)
-    const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
-    
-    // 獲取數據行 (第二行到最後一行)
-    const dataRows = sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+            try {
+                // 獲取表單數據
+                const formData = new FormData(form);
+                
+                // 將 FormData 轉換為 URLSearchParams 格式，這是 Apps Script doPost 接收 POST 數據的標準格式
+                const params = new URLSearchParams(formData);
 
-    // 將數據行轉換為物件陣列
-    const data = dataRows.map(row => {
-      const obj = {};
-      headers.forEach((header, index) => {
-        // 使用標題作為鍵 (Key)
-        obj[header] = row[index];
-      });
-      return obj;
-    });
-    
-    const response = {
-      status: 'success',
-      total: data.length,
-      data: data
-    };
+                const response = await fetch(appsScriptUrl, {
+                    method: 'POST',
+                    // 設定 Content-Type 以符合 Apps Script 預期
+                    body: params.toString(), 
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    cache: 'no-cache'
+                });
 
-    return output.setContent(JSON.stringify(response));
-    
-  } catch (error) {
-    const response = {
-      status: 'error',
-      message: error.toString()
-    };
+                // Apps Script 回傳 JSON 格式
+                const result = await response.json();
 
-    return output.setContent(JSON.stringify(response));
-  }
-}
+                if (result.status === 'success') {
+                    // 成功訊息
+                    messageBox.classList.remove('bg-purple-100', 'text-purple-700');
+                    messageBox.classList.add('bg-green-100', 'text-green-700');
+                    messageBox.innerHTML = '🎉 **報名成功！** 您的資料已匯入 Google Sheets！';
+                    form.reset(); // 清空表單
+                } else {
+                    // 錯誤訊息
+                    messageBox.classList.remove('bg-purple-100', 'text-purple-700');
+                    messageBox.classList.add('bg-red-100', 'text-red-700');
+                    messageBox.innerHTML = `❌ **報名失敗！** 錯誤訊息：${result.message || '請檢查 Apps Script 部署與設定。'}`;
+                    console.error('Apps Script Error:', result.message);
+                }
+
+            } catch (error) {
+                // 網路或 Fetch 程式碼錯誤
+                messageBox.classList.remove('bg-purple-100', 'text-purple-700');
+                messageBox.classList.add('bg-red-100', 'text-red-700');
+                messageBox.innerHTML = `🚨 **發生例外錯誤！** 請檢查網路連線或 Apps Script 網址是否正確。`;
+                console.error('Submission Error:', error);
+            }
+            
+            // 5 秒後自動隱藏訊息
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
