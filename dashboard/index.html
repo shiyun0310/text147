@@ -113,29 +113,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- 原始數據表格 (可選，用於確認) -->
-            <div class="p-6 bg-gray-50 rounded-2xl shadow-inner">
-                <h2 class="text-2xl font-bold text-gray-700 mb-4 flex items-center">
-                    最新報名名單 (前 5 筆) 📋
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-200">
-                            <tr>
-                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">時間</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">姓名</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">機構</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">職類</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">方式</th>
-                            </tr>
-                        </thead>
-                        <tbody id="latest-data-table" class="bg-white divide-y divide-gray-200 text-sm">
-                            <!-- 數據將在此處動態載入 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            
+            <!-- 原本的「最新報名名單」表格已移除 -->
 
         </div>
 
@@ -193,8 +172,7 @@
             // 4. 渲染職類分佈
             renderProfessionChart(stats.profession, totalCount);
             
-            // 5. 渲染最新報名名單 (最近的 5 筆)
-            renderLatestDataTable(data.slice(-5).reverse()); // 取最新的 5 筆並反轉 (最新在最上面)
+            // ** 5. 渲染最新報名名單 (此函數已被移除，不再呼叫) **
             
             // 顯示儀表板內容
             loadingContainer.classList.add('hidden');
@@ -279,30 +257,12 @@
 
         /**
          * 渲染最新報名名單表格。
+         * * 註: 此函數已不再被呼叫，但為確保程式碼完整性，保留此空函數。
          * @param {Array} latestData - 最新報名數據陣列。
          */
         function renderLatestDataTable(latestData) {
-            const tableBody = document.getElementById('latest-data-table');
-            tableBody.innerHTML = '';
-            
-            if (latestData.length === 0) {
-                 tableBody.innerHTML = '<tr><td colspan="5" class="px-3 py-2 text-center text-gray-500">目前尚無報名資料。</td></tr>';
-                 return;
-            }
-
-            latestData.forEach(item => {
-                const time = new Date(item['提交時間']).toLocaleString('zh-TW', { hour: '2-digit', minute: '2-digit', month: '2-digit', day: '2-digit' });
-                const row = `
-                    <tr>
-                        <td class="px-3 py-2 whitespace-nowrap text-gray-800">${time}</td>
-                        <td class="px-3 py-2 whitespace-nowrap text-gray-800">${item['姓名']}</td>
-                        <td class="px-3 py-2 whitespace-nowrap text-gray-800">${item['機構名']}</td>
-                        <td class="px-3 py-2 whitespace-nowrap text-gray-800">${item['負責的職類']}</td>
-                        <td class="px-3 py-2 whitespace-nowrap text-gray-800 font-semibold ${item['參與方式'] === '實體' ? 'text-indigo-600' : 'text-pink-600'}">${item['參與方式']}</td>
-                    </tr>
-                `;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
+            // 由於用戶要求移除表格，此函數內容不再執行渲染。
+            // 原始表格結構已從 HTML 中移除。
         }
         
         /**
